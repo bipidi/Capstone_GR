@@ -1,0 +1,28 @@
+!pip install bs4
+import pandas as pd
+from bs4 import BeautifulSoup # this module helps in web scrapping.
+import requests  # this module helps us to download a web page
+#The below url contains html tables with data about postal codes of Canada.
+url = "https://en.wikipedia.org/wiki/List_of_postal_codes_of_Canada:_M"
+data  = requests.get(url).text
+soup = BeautifulSoup(data,"html5lib")
+tables = soup.find_all('table') 
+len(tables)
+for index,table in enumerate(tables):
+    if ("Neighbourhood" in str(table)):
+        table_index = index
+print(table_index)
+print(tables[table_index].prettify())
+pc_data = pd.DataFrame(columns=["Postal Code", "Borough", "Neighbourhood"])
+
+for row in tables[table_index].tbody.find_all("tr"):
+    col = row.find_all("td")
+    if (col != []):
+        postalcode = col[0].text.strip()
+        borough = col[1].text.strip()
+        neighbourhood = col[2].text.strip()
+        pc_data = pc_data.append({"Postal Code":postalcode, "Borough":borough, "Neighbourhood":neighbourhood}, ignore_index=True)
+
+pc_data
+pc_data = pc_data[pc_data["Borough"]!="Not assigned"]
+pc_data.shape
